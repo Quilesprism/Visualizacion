@@ -1,12 +1,18 @@
 import React from 'react';
 import ChatGPTInterface from './component/ChatGPTInterface';
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import Login from "./component/Login";
 
-const App = () => {
+function App() {
   return (
-    <div className='bg-indigo-400'>
-      <ChatGPTInterface />
-    </div>
+    <Router>
+      <Routes>
+        <Route path="/" element={<Login />} />
+        <Route path="/home" element={<div><ChatGPTInterface /></div>} />
+      </Routes>
+    </Router>
   );
-};
+}
 
 export default App;
+
