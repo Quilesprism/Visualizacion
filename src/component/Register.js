@@ -1,56 +1,55 @@
 import React, { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
-import { useAuth0 } from "@auth0/auth0-react"; 
-import { login, googleLogin } from "../services/authService"; 
+import { useNavigate } from "react-router-dom";
+import { useAuth0 } from "@auth0/auth0-react";
+import { register } from "../services/authService";
 
-const Login = () => {
+const Register = () => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [confirmPassword, setConfirmPassword] = useState("");
     const [error, setError] = useState("");
     const navigate = useNavigate();
-
     const { loginWithPopup, getIdTokenClaims, user, isAuthenticated } = useAuth0();
 
-    const handleSubmit = async (e) => {
+    const handleRegister = async (e) => {
         e.preventDefault();
+        if (password !== confirmPassword) {
+            setError("Las contraseñas no coinciden.");
+            return;
+        }
+
         try {
-            await login(email, password);
+            await register(email, password);
             navigate("/home");
         } catch (error) {
-            setError("Error al iniciar sesión. Verifica tus credenciales.");
+            setError("Error al registrar. Verifica la información.");
         }
     };
 
-    const handleAuth0Login = async () => {
+    const handleAuth0Register = async () => {
         try {
-
-            await loginWithPopup()
-            
-            console.log(user)
+            await loginWithPopup();
             const idToken = await getIdTokenClaims();
             if (!idToken || !idToken.__raw) {
                 throw new Error("No se generó el token de Auth0.");
             }
             const token = idToken.__raw;
-            console.log("Token obtenido:", token); 
+            console.log("Token obtenido:", token);
 
-            await googleLogin(token)
-            isAuthenticated && (  
-                navigate("/home")
-        )
+            await register(token);
+            isAuthenticated && navigate("/home");
         } catch (error) {
-            console.error("Error durante el proceso de inicio de sesión con Auth0:", error);
-            setError(error.message || "Error al iniciar sesión con Auth0.");
+            console.error("Error durante el proceso de registro con Auth0:", error);
+            setError(error.message || "Error al registrar con Auth0.");
         }
     };
-    
+
     return (
-        
         <div className="flex items-center justify-center h-screen bg-gray-100">
             <div className="bg-white p-6 rounded shadow-md text-center">
-                <h2 className="text-2xl font-bold mb-4">Iniciar Sesión</h2>
+                <h2 className="text-2xl font-bold mb-4">Registrarse</h2>
                 {error && <p className="text-red-500">{error}</p>}
-                <form onSubmit={handleSubmit}>
+                <form onSubmit={handleRegister}>
                     <input
                         type="email"
                         placeholder="Correo electrónico"
@@ -67,29 +66,30 @@ const Login = () => {
                         className="mb-3 p-2 border border-gray-300 rounded w-full"
                         required
                     />
+                    <input
+                        type="password"
+                        placeholder="Confirmar contraseña"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        className="mb-3 p-2 border border-gray-300 rounded w-full"
+                        required
+                    />
                     <button
                         type="submit"
                         className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 w-full"
                     >
-                        Iniciar Sesión
+                        Registrarse
                     </button>
                 </form>
-                <button
-                    onClick={handleAuth0Login}
+                {/* <button
+                    onClick={handleAuth0Register}
                     className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 mt-4 w-full"
                 >
-                    Iniciar sesión con Google
-                </button>
-                <p className="mt-4">
-                    ¿No tienes una cuenta?{" "}
-                    <Link to="/register" className="text-blue-500 hover:underline">
-                        Registrarse
-                    </Link>
-                </p>
+                    Registrarse
+                </button> */}
             </div>
-            
         </div>
     );
 };
 
-export default Login;
+export default Register;

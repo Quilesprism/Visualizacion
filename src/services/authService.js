@@ -1,7 +1,7 @@
 import axios from "axios";
 import { saveToken, removeToken } from "../utils/tokenUtils";
 
-const API_URL = "http://127.0.0.1:8000/api/users";  
+const API_URL = "https://dbback-1091848286124.us-central1.run.app/api/users";  
 
 
 export const register = async (email, password) => {
@@ -26,9 +26,7 @@ export const login = async (email, password) => {
 export const googleLogin = async (token) => {
     try {
         console.log("Token que se enviará al backend: ", token);  
-        const response = await axios.post("http://127.0.0.1:8000/api/users/loginG/", {
-            token,  
-        });
+        const response = await axios.post(`${API_URL}/loginG/`, {token}, {headers:{'Content-Type': 'application/json'}});
         console.log("Respuesta del servidor: ", response.data);  
         return response.data;
     } catch (error) {
