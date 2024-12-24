@@ -1,6 +1,4 @@
-import React from 'react';
-
-const ChatList = ({ chats, currentChatId, startNewChat, switchChat }) => {
+const ChatList = ({ chats, currentChatId, startNewChat, switchChat, logout }) => { // Recibe logout
   return (
     <div className="w-1/4 bg-indigo-400 p-4 rounded-lg mr-4">
       <button
@@ -18,6 +16,12 @@ const ChatList = ({ chats, currentChatId, startNewChat, switchChat }) => {
           {chat.title}
         </div>
       ))}
+      <button
+        onClick={logout} 
+        className="w-full bg-red-500 text-white p-2 rounded-lg mt-4 hover:bg-red-600"
+      >
+        Logout
+      </button>
     </div>
   );
 };
