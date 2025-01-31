@@ -3,7 +3,7 @@ import ChatList from "./ChatList";
 import ChatWindow from "./ChatWindow";
 import { useAuth0 } from "@auth0/auth0-react";
 import { removeToken, getAccessToken } from "../utils/tokenUtils";
-
+import '../index.css'; 
 const ChatGPTInterface = () => {
   const [chats, setChats] = useState([{ id: 1, title: "New Chat", messages: [] }]);
   const [currentChatId, setCurrentChatId] = useState(1);
@@ -12,32 +12,26 @@ const ChatGPTInterface = () => {
   const [isListening, setIsListening] = useState(false);
   const messageEndRef = useRef(null);
 
-  const { isAuthenticated: isAuth0Authenticated, logout: auth0Logout } = useAuth0();
+  const { isAuthenticated, logout } = useAuth0();
 
   useEffect(() => {
-    if (messageEndRef.current) {
-      messageEndRef.current.scrollIntoView({ behavior: "smooth" });
-    }
+    messageEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [chats]);
 
-  // Manejador de cierre de sesión dinámico
   const handleLogout = () => {
-    const customAuthenticated = !!getAccessToken(); // Determina si el token propio está presente
-    if (isAuth0Authenticated) {
-      console.log("Cerrando sesión con Auth0...");
-      auth0Logout({ returnTo: window.location.origin });
-    } else if (customAuthenticated) {
-      console.log("Cerrando sesión con el sistema propio...");
+    if (isAuthenticated) {
+      console.log("Logging out with Auth0...");
+      logout({ returnTo: window.location.origin });
+    } else if (getAccessToken()) {
+      console.log("Logging out from custom system...");
       removeToken();
       window.location.href = "/";
     } else {
-      console.warn("No hay sesión activa para cerrar.");
+      console.warn("No active session to log out from.");
     }
   };
 
-  const handleInputChange = (e) => {
-    setInput(e.target.value);
-  };
+  const handleInputChange = (e) => setInput(e.target.value);
 
   const simulateResponse = (userInput) => {
     const responses = [
@@ -47,12 +41,12 @@ const ChatGPTInterface = () => {
       "I'm not entirely sure, but here's what I understand about that...",
       "That's a complex issue. Let's break it down step by step...",
     ];
-    return responses[Math.floor(Math.random() * responses.length)] + " " + userInput;
+    return `${responses[Math.floor(Math.random() * responses.length)]} ${userInput}`;
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (input.trim() === "") return;
+    if (!input.trim()) return;
 
     const userMessage = { role: "user", content: input };
     addMessageToCurrentChat(userMessage);
@@ -69,47 +63,31 @@ const ChatGPTInterface = () => {
   const addMessageToCurrentChat = (message) => {
     setChats((prevChats) =>
       prevChats.map((chat) =>
-        chat.id === currentChatId
-          ? { ...chat, messages: [...chat.messages, message] }
-          : chat
+        chat.id === currentChatId ? { ...chat, messages: [...chat.messages, message] } : chat
       )
     );
   };
 
   const startNewChat = () => {
-    const newChatId = chats.length + 1;
-    setChats((prevChats) => [
-      ...prevChats,
-      { id: newChatId, title: `New Chat ${newChatId}`, messages: [] },
-    ]);
-    setCurrentChatId(newChatId);
+    setChats([...chats, { id: chats.length + 1, title: `New Chat ${chats.length + 1}`, messages: [] }]);
+    setCurrentChatId(chats.length + 1);
   };
 
-  const switchChat = (chatId) => {
-    setCurrentChatId(chatId);
-  };
+  const switchChat = (chatId) => setCurrentChatId(chatId);
 
   const startListening = () => {
     setIsListening(true);
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    const recognition = new SpeechRecognition();
-
+    const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
     recognition.onresult = (event) => {
-      const transcript = event.results[0][0].transcript;
-      setInput(transcript);
+      setInput(event.results[0][0].transcript);
       setIsListening(false);
     };
-
-    recognition.onerror = (event) => {
-      console.error("Speech recognition error", event.error);
-      setIsListening(false);
-    };
-
+    recognition.onerror = () => setIsListening(false);
     recognition.start();
   };
 
   return (
-    <div className="container mx-auto p-4 flex h-screen">
+    <div className="container mx-auto p-6 flex h-screen bg-gray-100">
       <ChatList
         chats={chats}
         currentChatId={currentChatId}
